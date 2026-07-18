@@ -306,8 +306,12 @@
     toolbar.style.display = "flex";
     const barW = toolbar.offsetWidth || 200;
     const barH = toolbar.offsetHeight || 36;
-    let top = rect.top + window.scrollY - barH - 8;
-    if (top < window.scrollY + 4) top = rect.bottom + window.scrollY + 8;
+    // Standardmäßig unter der Auswahl anzeigen (dort weniger im Weg).
+    // Nur nach oben klappen, wenn darunter kein Platz mehr im Viewport ist.
+    let top = rect.bottom + window.scrollY + 8;
+    if (rect.bottom + barH + 8 > document.documentElement.clientHeight) {
+      top = rect.top + window.scrollY - barH - 8;
+    }
     let left = rect.left + window.scrollX + rect.width / 2 - barW / 2;
     left = Math.max(
       window.scrollX + 4,
