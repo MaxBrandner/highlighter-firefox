@@ -1,0 +1,12 @@
+{
+  "addons": {
+    "highlighter@max.local": {
+      "updates": [
+        {
+          "version": "0.1.0",
+          "update_link": "https://github.com/MaxBrandner/highlighter-firefox/releases/download/v0.1.0/highlighter-0.1.0.xpi"
+        }
+      ]
+    }
+  }
+}
