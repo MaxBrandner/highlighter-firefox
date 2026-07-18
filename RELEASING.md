@@ -6,9 +6,9 @@ Kurzanleitung, um eine neue Version der Erweiterung an die Nutzer auszuliefern.
 
 Es gibt **zwei unabhängige** Dinge, die beide „Update" heißen:
 
-1. **Signieren bei Mozilla** – holt Mozillas Signatur für die neue Version.
-   Machst *du* als Entwickler, einmal pro Version. Ohne Signatur installiert
-   Firefox die `.xpi` nicht dauerhaft.
+1. **Signieren bei Mozilla** – holt Mozillas Signatur für die neue Version (per
+   API-Keys, siehe unten). Ohne Signatur installiert Firefox die `.xpi` nicht
+   dauerhaft.
 2. **`update_url` / `updates.json`** – der Auslieferungskanal zu den Nutzern.
    Firefox liest bei jedem Nutzer regelmäßig die `updates.json` auf GitHub und
    installiert eine neuere Version **automatisch**. Hat mit Mozilla nichts zu tun.
@@ -34,38 +34,27 @@ wird aber über das öffentliche GitHub-Repo verteilt.
 > Jede Versionsnummer darf bei AMO nur **einmal** existieren – immer hochzählen,
 > nie eine bereits hochgeladene Nummer wiederverwenden.
 
-### 2. Paket bauen
+### 2. Bauen & signieren (per API)
 
 ```bash
 npm run build          # erzeugt web-ext-artifacts/highlighter-X.Y.Z.zip
-```
-
-Das gebaute ZIP enthält **keine** `updates.json` (per `web-ext-config.cjs`
-ausgeschlossen) und die `update_url` im Manifest.
-
-### 3. Bei Mozilla signieren lassen
-
-**Weg A – Web (manuell):**
-1. https://addons.mozilla.org/developers/addons → Add-on „Highlighter" öffnen.
-2. **„Upload New Version"** → `highlighter-X.Y.Z.zip` hochladen.
-3. Source-Code-Frage: **No** (kein Bundler/Minifier – Code ist direkt lesbar).
-4. Nach dem automatischen Signieren die signierte `.xpi` herunterladen.
-
-**Weg B – Kommandozeile (mit API-Keys, bequemer):**
-```bash
 npm run sign -- --api-key=DEIN_JWT_ISSUER --api-secret=DEIN_JWT_SECRET
-# → signierte .xpi landet direkt in web-ext-artifacts/
 ```
+
+`web-ext sign` lädt die fertig **signierte** `.xpi` direkt nach
+`web-ext-artifacts/` (Kanal `unlisted` ist in `web-ext-config.cjs` gesetzt).
 API-Keys: https://addons.mozilla.org/developers/addon/api/key/
 
-### 4. GitHub-Release anlegen
-
-Die signierte Datei **muss** exakt `highlighter-X.Y.Z.xpi` heißen (passend zum
-`update_link`):
+Die signierte Datei muss exakt `highlighter-X.Y.Z.xpi` heißen (passend zum
+`update_link`). Legt web-ext sie unter einem anderen Namen ab, einmal umbenennen:
 
 ```bash
-cp <heruntergeladene-signierte>.xpi web-ext-artifacts/highlighter-X.Y.Z.xpi
+mv web-ext-artifacts/<signierte-datei>.xpi web-ext-artifacts/highlighter-X.Y.Z.xpi
+```
 
+### 3. Committen & GitHub-Release anlegen
+
+```bash
 git add manifest.json package.json updates.json
 git commit -m "Version X.Y.Z"
 git push origin main
@@ -76,15 +65,12 @@ gh release create vX.Y.Z \
   --notes "Beschreibung der Änderungen."
 ```
 
-### 5. Prüfen, dass alles öffentlich erreichbar ist
+### 4. Prüfen, dass alles öffentlich erreichbar ist
 
 ```bash
-# updates.json erreichbar?
-curl -s -o /dev/null -w "%{http_code}\n" \
+curl -s -o /dev/null -w "updates.json: %{http_code}\n" \
   https://raw.githubusercontent.com/MaxBrandner/highlighter-firefox/main/updates.json
-
-# .xpi ohne Login ladbar?
-curl -s -L -o /dev/null -w "%{http_code}\n" \
+curl -s -L -o /dev/null -w "xpi:          %{http_code}\n" \
   https://github.com/MaxBrandner/highlighter-firefox/releases/download/vX.Y.Z/highlighter-X.Y.Z.xpi
 ```
 
@@ -92,24 +78,9 @@ Beide müssen `200` liefern. Danach aktualisiert Firefox alle Nutzer automatisch
 
 ## Wichtige Fakten
 
-- **Add-on-ID:** `highlighter@brandner.name` – muss im Manifest und als Schlüssel in
-  `updates.json` identisch bleiben. Ändern = für Firefox eine *andere*
+- **Add-on-ID:** `highlighter@brandner.name` – muss im Manifest und als Schlüssel
+  in `updates.json` identisch bleiben. Ändern = für Firefox eine *andere*
   Erweiterung (bestehende Installationen updaten dann nicht mehr).
-
-## Sonderfall: Add-on-ID geändert (z. B. v0.1.1 → v0.1.2)
-
-Die ID ist bei AMO der **unveränderliche Primärschlüssel** eines Listings. Eine
-neue ID kann **nicht** als „Upload New Version" in ein bestehendes Listing – sie
-muss als **neues Add-on** eingereicht werden:
-
-1. Paket mit neuer ID + Version bauen (siehe oben).
-2. AMO → **„Submit a New Add-on"** → **„On your own site"** (unlisted) → ZIP
-   hochladen und signieren lassen. (Nicht „Upload New Version" beim alten Add-on!)
-3. Signierte `.xpi` als GitHub-Release veröffentlichen, `updates.json` pushen.
-4. Altes Listing (alte ID) darf liegen bleiben – am besten deaktivieren/löschen,
-   damit es nicht verwechselt wird. Kein technischer Einfluss auf das neue.
-5. Bestehende Installationen mit alter ID bekommen **kein** Auto-Update mehr –
-   einmalig deinstallieren + neue Version installieren.
 - **update_url:** `https://raw.githubusercontent.com/MaxBrandner/highlighter-firefox/main/updates.json`
   Steht im Manifest und ist Teil der signierten Datei – bei einem Umzug müsste
   neu signiert werden.
