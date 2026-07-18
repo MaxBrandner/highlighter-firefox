@@ -92,9 +92,24 @@ Beide müssen `200` liefern. Danach aktualisiert Firefox alle Nutzer automatisch
 
 ## Wichtige Fakten
 
-- **Add-on-ID:** `highlighter@max.local` – muss im Manifest und als Schlüssel in
+- **Add-on-ID:** `highlighter@brandner.name` – muss im Manifest und als Schlüssel in
   `updates.json` identisch bleiben. Ändern = für Firefox eine *andere*
   Erweiterung (bestehende Installationen updaten dann nicht mehr).
+
+## Sonderfall: Add-on-ID geändert (z. B. v0.1.1 → v0.1.2)
+
+Die ID ist bei AMO der **unveränderliche Primärschlüssel** eines Listings. Eine
+neue ID kann **nicht** als „Upload New Version" in ein bestehendes Listing – sie
+muss als **neues Add-on** eingereicht werden:
+
+1. Paket mit neuer ID + Version bauen (siehe oben).
+2. AMO → **„Submit a New Add-on"** → **„On your own site"** (unlisted) → ZIP
+   hochladen und signieren lassen. (Nicht „Upload New Version" beim alten Add-on!)
+3. Signierte `.xpi` als GitHub-Release veröffentlichen, `updates.json` pushen.
+4. Altes Listing (alte ID) darf liegen bleiben – am besten deaktivieren/löschen,
+   damit es nicht verwechselt wird. Kein technischer Einfluss auf das neue.
+5. Bestehende Installationen mit alter ID bekommen **kein** Auto-Update mehr –
+   einmalig deinstallieren + neue Version installieren.
 - **update_url:** `https://raw.githubusercontent.com/MaxBrandner/highlighter-firefox/main/updates.json`
   Steht im Manifest und ist Teil der signierten Datei – bei einem Umzug müsste
   neu signiert werden.

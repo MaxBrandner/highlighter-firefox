@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
   "name": "Highlighter",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Markiere Text auf Webseiten in Farben, füge Notizen hinzu und verwalte alles in der Seitenleiste.",
   "permissions": [
     "storage",
@@ -41,7 +41,7 @@
   },
   "browser_specific_settings": {
     "gecko": {
-      "id": "highlighter@max.local",
+      "id": "highlighter@brandner.name",
       "strict_min_version": "140.0",
       "update_url": "https://raw.githubusercontent.com/MaxBrandner/highlighter-firefox/main/updates.json",
       "data_collection_permissions": {
