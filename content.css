@@ -1,0 +1,123 @@
+/* Markierter Text */
+.__hlx {
+  border-radius: 2px;
+  cursor: pointer;
+  transition: background-color 0.15s ease, box-shadow 0.15s ease;
+}
+.__hlx.__hlx_flash {
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.6);
+}
+
+/* Gemeinsame UI-Basis (Reset gegen Seiten-CSS) */
+.__hlx_ui {
+  all: revert;
+  position: absolute;
+  z-index: 2147483647;
+  font-family: -apple-system, "Segoe UI", Roboto, sans-serif;
+  box-sizing: border-box;
+}
+.__hlx_ui * {
+  box-sizing: border-box;
+}
+
+/* Schwebende Farbleiste */
+.__hlx_toolbar {
+  display: none;
+  gap: 6px;
+  padding: 6px 8px;
+  background: #26262f;
+  border-radius: 10px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+  align-items: center;
+}
+
+/* Farbknöpfe */
+.__hlx_swatch {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.25);
+  padding: 0;
+  cursor: pointer;
+  transition: transform 0.1s ease, border-color 0.1s ease;
+}
+.__hlx_swatch:hover {
+  transform: scale(1.15);
+}
+.__hlx_swatch.__hlx_active {
+  border-color: #fff;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.4);
+}
+
+/* Notiz-Tooltip beim Hovern */
+.__hlx_tooltip {
+  display: none;
+  max-width: 280px;
+  padding: 8px 10px;
+  background: #1f1f27;
+  color: #f4f4f6;
+  font-size: 13px;
+  line-height: 1.4;
+  border-radius: 8px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+  white-space: pre-wrap;
+  pointer-events: none;
+}
+
+/* Bearbeiten-Popup */
+.__hlx_popup {
+  width: 260px;
+  padding: 10px;
+  background: #26262f;
+  color: #f4f4f6;
+  border-radius: 12px;
+  box-shadow: 0 8px 26px rgba(0, 0, 0, 0.45);
+}
+.__hlx_popup_colors {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+.__hlx_note {
+  width: 100%;
+  min-height: 64px;
+  resize: vertical;
+  padding: 8px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: #1c1c24;
+  color: #f4f4f6;
+  font-size: 13px;
+  font-family: inherit;
+  outline: none;
+}
+.__hlx_note:focus {
+  border-color: #7dd3fc;
+}
+.__hlx_popup_actions {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 8px;
+}
+.__hlx_btn {
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: none;
+  font-size: 13px;
+  cursor: pointer;
+}
+.__hlx_del {
+  background: transparent;
+  color: #f87171;
+}
+.__hlx_del:hover {
+  background: rgba(248, 113, 113, 0.12);
+}
+.__hlx_done {
+  background: #7dd3fc;
+  color: #0b0b0f;
+  font-weight: 600;
+}
+.__hlx_done:hover {
+  filter: brightness(1.05);
+}

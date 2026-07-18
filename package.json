@@ -1,0 +1,14 @@
+{
+  "name": "highlighter-firefox",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Firefox-Erweiterung zum farbigen Markieren von Text mit Notizen und Seitenleiste.",
+  "scripts": {
+    "lint": "web-ext lint --self-hosted",
+    "build": "web-ext build --overwrite-dest",
+    "sign": "web-ext sign"
+  },
+  "devDependencies": {
+    "web-ext": "^10.5.0"
+  }
+}
