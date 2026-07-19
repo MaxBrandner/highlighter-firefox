@@ -18,6 +18,37 @@
   const countEl = document.getElementById("count");
   const emptyEl = document.getElementById("empty");
   const pageTitleEl = document.getElementById("pageTitle");
+  const themeToggleEl = document.getElementById("themeToggle");
+
+  // --- Theme-Umschalter (System → Hell → Dunkel → …) -----------------------
+  const THEME_KEY = "hl:themeMode";
+  const THEME_ORDER = ["system", "light", "dark"];
+  const THEME_META = {
+    system: { icon: "🖥️", label: "Design: System (klicken für hell)" },
+    light: { icon: "☀️", label: "Design: hell (klicken für dunkel)" },
+    dark: { icon: "🌙", label: "Design: dunkel (klicken für System)" },
+  };
+
+  function applyTheme(mode) {
+    const m = THEME_ORDER.includes(mode) ? mode : "system";
+    document.documentElement.dataset.theme = m;
+    themeToggleEl.dataset.state = m;
+    themeToggleEl.textContent = THEME_META[m].icon;
+    themeToggleEl.title = THEME_META[m].label;
+    themeToggleEl.setAttribute("aria-label", THEME_META[m].label);
+  }
+
+  async function loadTheme() {
+    const res = await browser.storage.local.get(THEME_KEY);
+    applyTheme(res[THEME_KEY]);
+  }
+
+  themeToggleEl.addEventListener("click", async () => {
+    const current = document.documentElement.dataset.theme || "system";
+    const next = THEME_ORDER[(THEME_ORDER.indexOf(current) + 1) % THEME_ORDER.length];
+    applyTheme(next);
+    await browser.storage.local.set({ [THEME_KEY]: next });
+  });
 
   let currentTabId = null;
   let currentKey = null;
@@ -157,5 +188,6 @@
     browser.windows.onFocusChanged.addListener(load);
   }
 
+  loadTheme();
   load();
 })();
