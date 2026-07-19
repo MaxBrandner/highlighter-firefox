@@ -6,7 +6,7 @@
   "scripts": {
     "lint": "web-ext lint --self-hosted",
     "build": "web-ext build --overwrite-dest",
-    "sign": "web-ext sign"
+    "sign": "bash scripts/sign.sh"
   },
   "devDependencies": {
     "web-ext": "^10.5.0"

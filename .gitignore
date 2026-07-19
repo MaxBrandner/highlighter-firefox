@@ -8,6 +8,10 @@ web-ext-artifacts/
 .web-extension-id
 *.env
 .env
+.env.*
+!.env.example
+*.pem
+*.secret
 
 # OS / Editor
 .DS_Store

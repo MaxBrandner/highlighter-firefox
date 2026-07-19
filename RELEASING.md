@@ -38,12 +38,17 @@ wird aber über das öffentliche GitHub-Repo verteilt.
 
 ```bash
 npm run build          # erzeugt web-ext-artifacts/highlighter-X.Y.Z.zip
-npm run sign -- --api-key=DEIN_JWT_ISSUER --api-secret=DEIN_JWT_SECRET
+npm run sign           # liest die AMO-Keys aus .env, signiert per API
 ```
 
-`web-ext sign` lädt die fertig **signierte** `.xpi` direkt nach
-`web-ext-artifacts/` (Kanal `unlisted` ist in `web-ext-config.cjs` gesetzt).
-API-Keys: https://addons.mozilla.org/developers/addon/api/key/
+`npm run sign` (→ `scripts/sign.sh`) lädt die AMO-Credentials aus der lokalen
+**`.env`** und lässt `web-ext sign` die fertig **signierte** `.xpi` direkt nach
+`web-ext-artifacts/` laden (Kanal `unlisted` ist in `web-ext-config.cjs` gesetzt).
+
+**Einmalige Einrichtung:** `.env.example` nach `.env` kopieren und deine Keys
+eintragen (`WEB_EXT_API_KEY`, `WEB_EXT_API_SECRET`). Die `.env` ist in
+`.gitignore` ausgeschlossen und wird nie committet.
+Keys erzeugen: https://addons.mozilla.org/developers/addon/api/key/
 
 Die signierte Datei muss exakt `highlighter-X.Y.Z.xpi` heißen (passend zum
 `update_link`). Legt web-ext sie unter einem anderen Namen ab, einmal umbenennen:
