@@ -8,16 +8,15 @@
   </head>
   <body>
     <header class="topbar">
-      <h1>Highlights</h1>
+      <button id="overviewToggle" class="icon-btn" type="button"></button>
+      <span id="viewLabel" class="view-label">Diese Seite</span>
       <span id="count" class="count">0</span>
       <button id="themeToggle" class="theme-toggle" type="button"></button>
     </header>
     <div id="pageTitle" class="page-title"></div>
     <ul id="list" class="list"></ul>
-    <div id="empty" class="empty">
-      Noch keine Highlights auf dieser Seite.<br />
-      Markiere Text und wähle eine Farbe.
-    </div>
+    <ul id="overview" class="overview"></ul>
+    <div id="empty" class="empty"></div>
     <script src="sidebar.js"></script>
   </body>
 </html>

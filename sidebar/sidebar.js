@@ -15,10 +15,29 @@
   ];
 
   const listEl = document.getElementById("list");
+  const overviewEl = document.getElementById("overview");
   const countEl = document.getElementById("count");
   const emptyEl = document.getElementById("empty");
   const pageTitleEl = document.getElementById("pageTitle");
   const themeToggleEl = document.getElementById("themeToggle");
+  const overviewToggleEl = document.getElementById("overviewToggle");
+  const viewLabelEl = document.getElementById("viewLabel");
+
+  function setEmpty(kind) {
+    emptyEl.textContent = "";
+    if (kind === "overview") {
+      emptyEl.textContent = "Noch keine Seiten mit Highlights.";
+    } else {
+      emptyEl.append(
+        document.createTextNode("Noch keine Highlights auf dieser Seite."),
+        document.createElement("br"),
+        document.createTextNode("Markiere Text und wähle eine Farbe.")
+      );
+    }
+  }
+
+  // "page" = Highlights der aktiven Seite, "overview" = Liste aller Seiten.
+  let mode = "page";
 
   // --- Theme-Umschalter (System → Hell → Dunkel → …) -----------------------
   const THEME_KEY = "hl:themeMode";
@@ -56,6 +75,106 @@
 
   const normUrl = (url) => (url || "").split("#")[0];
   const keyFor = (url) => "hl::" + normUrl(url);
+
+  // --- Modus-Umschaltung (Diese Seite ↔ Alle Seiten) -----------------------
+  function refresh() {
+    return mode === "overview" ? showOverview() : load();
+  }
+
+  function updateOverviewToggle() {
+    const isOverview = mode === "overview";
+    overviewToggleEl.textContent = isOverview ? "←" : "🗂";
+    const label = isOverview
+      ? "Zurück zu dieser Seite"
+      : "Alle Seiten mit Highlights";
+    overviewToggleEl.title = label;
+    overviewToggleEl.setAttribute("aria-label", label);
+  }
+
+  overviewToggleEl.addEventListener("click", () => {
+    mode = mode === "overview" ? "page" : "overview";
+    updateOverviewToggle();
+    refresh();
+  });
+
+  const hostOf = (url) => {
+    try {
+      return new URL(url).hostname.replace(/^www\./, "");
+    } catch (e) {
+      return url;
+    }
+  };
+
+  // Alle gespeicherten Seiten einsammeln (Schlüssel "hl::<url>"), neueste zuerst.
+  async function loadOverview() {
+    const all = await browser.storage.local.get(null);
+    const pages = [];
+    for (const [key, val] of Object.entries(all)) {
+      if (!key.startsWith("hl::") || !Array.isArray(val) || !val.length) continue;
+      const url = key.slice(4);
+      const title = (val.find((h) => h.title) || {}).title || url;
+      const lastAt = val.reduce((m, h) => Math.max(m, h.createdAt || 0), 0);
+      pages.push({ url, title, count: val.length, lastAt });
+    }
+    pages.sort((a, b) => b.lastAt - a.lastAt);
+    return pages;
+  }
+
+  async function showOverview() {
+    renderOverview(await loadOverview());
+  }
+
+  function renderOverview(pages) {
+    listEl.style.display = "none";
+    pageTitleEl.style.display = "none";
+    overviewEl.style.display = "block";
+    viewLabelEl.textContent = "Alle Seiten";
+    countEl.textContent = String(pages.length);
+    overviewEl.textContent = "";
+    setEmpty("overview");
+    emptyEl.style.display = pages.length ? "none" : "block";
+
+    for (const p of pages) {
+      const li = document.createElement("li");
+      li.className = "ov-item";
+      li.title = p.url + " – zum Öffnen klicken";
+
+      const t = document.createElement("div");
+      t.className = "ov-title";
+      t.textContent = p.title;
+
+      const meta = document.createElement("div");
+      meta.className = "ov-meta";
+      const host = document.createElement("span");
+      host.className = "ov-host";
+      host.textContent = hostOf(p.url);
+      const cnt = document.createElement("span");
+      cnt.className = "ov-count";
+      cnt.textContent = String(p.count);
+      meta.append(host, cnt);
+
+      li.append(t, meta);
+      // Linksklick: im Vordergrund öffnen und zurück in die "Diese Seite"-Ansicht
+      // wechseln – der Tab-Wechsel rendert dann die Highlights der neuen Seite.
+      li.addEventListener("click", () => {
+        mode = "page";
+        updateOverviewToggle();
+        browser.tabs.create({ url: p.url });
+      });
+      // Mittlere Maustaste: wie in Firefox in neuem Hintergrund-Tab öffnen; die
+      // Übersicht bleibt stehen.
+      li.addEventListener("auxclick", (e) => {
+        if (e.button !== 1) return;
+        e.preventDefault();
+        browser.tabs.create({ url: p.url, active: false });
+      });
+      // Autoscroll-Kreis der mittleren Taste unterdrücken.
+      li.addEventListener("mousedown", (e) => {
+        if (e.button === 1) e.preventDefault();
+      });
+      overviewEl.appendChild(li);
+    }
+  }
 
   async function getActiveTab() {
     const tabs = await browser.tabs.query({ active: true, currentWindow: true });
@@ -104,6 +223,11 @@
   }
 
   function render(list) {
+    overviewEl.style.display = "none";
+    listEl.style.display = "block";
+    pageTitleEl.style.display = "";
+    viewLabelEl.textContent = "Diese Seite";
+    setEmpty("page");
     listEl.textContent = "";
     countEl.textContent = String(list.length);
     emptyEl.style.display = list.length ? "none" : "block";
@@ -157,7 +281,13 @@
 
   // Live-Aktualisierung, wenn sich der Speicher der aktuellen Seite ändert.
   browser.storage.onChanged.addListener((changes, area) => {
-    if (area !== "local" || !currentKey || !changes[currentKey]) return;
+    if (area !== "local") return;
+    // In der Übersicht auf jede Seiten-Änderung reagieren.
+    if (mode === "overview") {
+      if (Object.keys(changes).some((k) => k.startsWith("hl::"))) showOverview();
+      return;
+    }
+    if (!currentKey || !changes[currentKey]) return;
     const change = changes[currentKey];
     const oldLen = Array.isArray(change.oldValue) ? change.oldValue.length : 0;
     const newLen = Array.isArray(change.newValue) ? change.newValue.length : 0;
@@ -179,15 +309,16 @@
     load();
   });
 
-  // Auf Tab-Wechsel / Navigation reagieren.
-  browser.tabs.onActivated.addListener(load);
+  // Auf Tab-Wechsel / Navigation reagieren (in der Übersicht bleibt der Modus).
+  browser.tabs.onActivated.addListener(refresh);
   browser.tabs.onUpdated.addListener((tabId, info) => {
-    if (info.status === "complete" || info.title || info.url) load();
+    if (info.status === "complete" || info.title || info.url) refresh();
   });
   if (browser.windows && browser.windows.onFocusChanged) {
-    browser.windows.onFocusChanged.addListener(load);
+    browser.windows.onFocusChanged.addListener(refresh);
   }
 
   loadTheme();
-  load();
+  updateOverviewToggle();
+  refresh();
 })();
